@@ -39,7 +39,7 @@ class TC_EntitiesObserver < SUMT::TestCase
     @ents.add_observer @obs
     face = @ents.add_face PTS
 
-    assert_obs_event  :onElementAdded, @ents, 5
+    assert_obs_event  :onElementAdded, 5, @ents, nil
     assert_obs_events
   end
   
@@ -48,7 +48,7 @@ class TC_EntitiesObserver < SUMT::TestCase
     @ents.add_observer @obs
     face.reverse!
 
-    assert_obs_event  :onElementModified, @ents, face, 1
+    assert_obs_event  :onElementModified, 1, @ents, face
     assert_obs_events
   end
 
@@ -58,7 +58,7 @@ class TC_EntitiesObserver < SUMT::TestCase
     @ents.add_observer @obs
     id = edges[0].entityID
     @ents.erase_entities edges
-    assert_obs_event  :onElementRemoved, @ents, id, 1
+    assert_obs_event  :onElementRemoved, 1, @ents, id
     assert_obs_events
     Sketchup.undo  #erase
   end
@@ -68,7 +68,7 @@ class TC_EntitiesObserver < SUMT::TestCase
     face = @ents.add_face PTS
     @ents.add_observer @obs
     @ents.erase_entities face.edges
-    assert_obs_event  :onElementRemoved, @ents, 5
+    assert_obs_event  :onElementRemoved, 5, @ents, nil
     assert_obs_events
     Sketchup.undo  #erase
   end
@@ -79,9 +79,9 @@ class TC_EntitiesObserver < SUMT::TestCase
     face.edges[0].erase!
 
     # Three remaining edges all have property changes (faces, all_connected)
-    assert_obs_event  :onElementModified, @ents, 3
-    assert_obs_event  :onElementRemoved , @ents, 2
-    assert_obs_event  :onEraseEntities  , @ents, 1
+    assert_obs_event  :onElementModified, 3, @ents, nil
+    assert_obs_event  :onElementRemoved , 2, @ents, nil
+    assert_obs_event  :onEraseEntities  , 1, @ents, nil
     assert_obs_events 3
 
     Sketchup.undo  # erase

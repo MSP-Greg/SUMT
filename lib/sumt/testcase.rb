@@ -11,15 +11,9 @@ module SUMT
 
 # Provides SketchUp specific methods for test classes.  A few of the attributes/methods
 # are available as both class and instance methods to make their use easier.  Some are
-# pull directly from testup-2, as they are currently used in the SketchUp test suite.
+# taken from testup-2, as they are currently used in the SketchUp test suite.
 #
 class TestCase < Minitest::Test
-
-  # @!macro [new] temp_dir
-  #   @!attribute [r] temp_dir
-  #   Returns a temp folder of \<Sketchup.temp_dir\>/SUMT/\<klass\>, creates if
-  #   it doesn't exist.
-  #   @return [string]
 
   # @!macro [new] get_test_file
   #   @!method get_test_file(fn, _dir = nil)
@@ -36,7 +30,20 @@ class TestCase < Minitest::Test
   #   (optionally) schemas.
   #   @param [boolean] clr_schemas: if false, schemas are not cleared/purged.
 
+  # @!macro [new] temp_dir
+  #   @!attribute [r] temp_dir
+  #   Returns a temp folder of \<Sketchup.temp_dir\>/SUMT/\<klass\>, creates if
+  #   it doesn't exist.
+  #   @return [string]
 
+  # @!macro [new] temp_file
+  #   @!method temp_file(fn)
+  #   Returns a temp file name of \<Sketchup.temp_dir\>/SUMT/\<klass\>/\<fn\>,
+  #   deletes if it already exists.
+  #   @param {string] fn filename 
+  #   @return [string]
+  
+  
   SKETCHUP_UNIT_TOLERANCE  = 1.0e-3
   SKETCHUP_FLOAT_TOLERANCE = 1.0e-10
   SKETCHUP_RANGE_MAX = -1.0e30
@@ -143,8 +150,16 @@ class TestCase < Minitest::Test
       tmp
     end
 
-#    def ste_setup    ; end
-#    def ste_teardown ; end
+    # @!macro temp_file
+    def temp_file(fn)
+      raise ArgumentError unless String === fn
+      klass = self.is_a?(Module) ? self.name : self.class.name
+      tmp = "#{Sketchup.temp_dir}/SUMT/#{klass}".freeze
+      FileUtils.mkdir_p(tmp) unless Dir.exist?(tmp)
+      fn = File.join(tmp, fn)
+      File.exist? fn and File.delete fn
+      fn
+    end
 
   end # class << self
 
@@ -159,6 +174,9 @@ class TestCase < Minitest::Test
   # @!macro temp_dir
   def temp_dir ; self.class.temp_dir ; end
 
+  # @!macro temp_file  
+  def temp_file(fn) ; self.class.temp_file(fn) ; end
+  
   def open_new_model
     model = Sketchup.active_model
     if model.respond_to? :close

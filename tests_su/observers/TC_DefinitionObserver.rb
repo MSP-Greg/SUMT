@@ -49,8 +49,8 @@ class TC_DefinitionObserver < SUMT::TestCase
     @def.add_observer @@obs
     inst  = @ents.add_instance @def, TRANS
 
-    assert_obs_event  :onComponentInstanceAdded, @def, inst
-    assert_obs_event  :onChangeEntity, @def
+    assert_obs_event  :onComponentInstanceAdded, 1, @def, inst
+    assert_obs_event  :onChangeEntity, 1, @def
     assert_obs_events 2
   end
 
@@ -59,8 +59,8 @@ class TC_DefinitionObserver < SUMT::TestCase
     @def.add_observer @@obs
     @ents.erase_entities inst
 
-    assert_obs_event  :onComponentInstanceRemoved, @def, inst
-    assert_obs_event  :onChangeEntity, @def
+    assert_obs_event  :onComponentInstanceRemoved, 1, @def, inst
+    assert_obs_event  :onChangeEntity, 1, @def
     assert_obs_events 2
   end
 
@@ -70,7 +70,7 @@ class TC_DefinitionObserver < SUMT::TestCase
     @def.add_observer @@obs
     @def.name = "DefinitionObserver1"
 
-    assert_obs_event  :onChangeEntity, @def
+    assert_obs_event  :onChangeEntity, 1, @def
     assert_obs_events
   end
 
@@ -79,8 +79,8 @@ class TC_DefinitionObserver < SUMT::TestCase
     @def.add_observer @@obs
     @defs.remove(@def)
 
-    assert_obs_event  :onChangeEntity, @def
-    assert_obs_event  :onEraseEntity, @def
+    assert_obs_event  :onChangeEntity, 1, @def
+    assert_obs_event  :onEraseEntity , 1, @def
     assert_obs_events 2
   end
 
@@ -88,8 +88,8 @@ class TC_DefinitionObserver < SUMT::TestCase
     @def.add_observer @@obs
     @defs.purge_unused
 
-    assert_obs_event  :onChangeEntity, @def
-    assert_obs_event  :onEraseEntity , @def
+    assert_obs_event  :onChangeEntity, 1, @def
+    assert_obs_event  :onEraseEntity , 1, @def
     assert_obs_events 2
   end
 end

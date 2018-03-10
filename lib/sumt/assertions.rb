@@ -21,35 +21,40 @@ module Assertions
   end
 
   # Checks Observer callback history by method. Verifies call count, and also
-  # a parameter match, if desired.
-  #
-  # The arguments passed after the symbol can be done three ways:
-  # 1. Parameters matching the callback parameters.  This will assume that the
-  #    method is only called once.
-  # 2. Parameters matching the callback parameters, along with an `Integer` for 
-  #    method call count.
-  # 3. A single `Integer`.  This is used when that parameters maybe indeterminate,
-  #    like a `ComponentDefinitionList.purge_unused`.  Note that the parameters
-  #    can be a partial list.
-  #
-  # @param [Symbol]        sym   The observer method to be checked
+  # a parameter match.
+  # @param [Symbol]        sym   The observer event to be checked
+  # @param {Integer]       cntr  The number of times the event should have occurred
   # @param [Array<Object>] args The arguments that should be passed to the
-  #   observer method.  Last optional argument is the method call count, and is
-  #    set to one if not included.
+  #   observer method.  If the last argument is indeterminate, use a nil.
   #
-  def assert_obs_event(sym, *args)
+  def assert_obs_event(sym, cntr, *args)
     assert OBS_CB[sym], "#{sym} not called"
-    exp_len = Integer === args.last ? args.pop : 1
-    act_len = OBS_CB[sym].pop
-    assert_equal exp_len, act_len, "#{sym} was not called #{exp_len} time(s), but #{act_len}"
-    # below
-    unless args.empty?
-      if (len = args.length) == OBS_CB[sym].length
-        assert_equal args, OBS_CB[sym], "#{sym} callback arguments don't match"
-      else
-        assert_equal args[0, len], OBS_CB[sym][0, len], "#{sym} callback arguments don't match"
+    act_cntr = OBS_CB[sym][0]
+    assert_equal cntr, act_cntr, "#{sym} was not called #{cntr} time(s), but #{act_cntr}"
+
+    len = args.length
+    cb_args = OBS_CB[sym][1..-1]
+
+    assert_equal len, cb_args.length, "Correct number of passed arguments should be #{args.length}," \
+      " but #{cb_args.length} were passed."
+
+    args.compact!
+    cb_args = OBS_CB[sym][1, args.length]
+    assert_equal args, cb_args, "#{sym} callback arguments don't match. #{msg_args_mismatch args, cb_args}"
+  end
+  
+  def msg_args_mismatch(args, cb_ary)
+    str = ''.dup
+    args.each.with_index { |a, i|
+      if Sketchup::Entity === a && !a.deleted?
+        if a.typename != cb_ary[i].typename
+          str << "\n  typename return parameter #{i+1} is a #{cb_ary[i].typename}, should be a #{a.typename}"
+        end
+      elsif a != cb_ary[i]
+        str << "\n  return parameter #{i+1} is a #{cb_ary[i].class}, should be a #{a.class}"
       end
-    end
+    }
+    str
   end
 
 end # module Assertions

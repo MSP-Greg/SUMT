@@ -36,8 +36,8 @@ class TC_DefinitionsObserver < SUMT::TestCase
 
     # below works, appears that the 'top most' or root def is called last
     # hence, the 2nd parameter matches, may fail in the future
-    assert_obs_event  :onComponentAdded, @defs, definition, 12
-    assert_obs_event  :onComponentPropertiesChanged, @defs, definition
+    assert_obs_event  :onComponentAdded, 12, @defs, definition
+    assert_obs_event  :onComponentPropertiesChanged, 1, @defs, definition
     assert_obs_events 2
   end
 
@@ -46,7 +46,7 @@ class TC_DefinitionsObserver < SUMT::TestCase
     @defs.add_observer @obs
     definition.name = "Bed1"
 
-    assert_obs_event  :onComponentPropertiesChanged, @defs, definition
+    assert_obs_event  :onComponentPropertiesChanged, 1, @defs, definition
     assert_obs_events
   end
 
@@ -59,7 +59,7 @@ class TC_DefinitionsObserver < SUMT::TestCase
 
     # below works, appears that the 'top most' or root def is called last
     # hence, the 2nd parameter matches, may fail in the future
-    assert_obs_event  :onComponentRemoved, @defs, definition, 2
+    assert_obs_event  :onComponentRemoved, 2, @defs, definition
     assert_obs_events
   end
 
@@ -69,7 +69,7 @@ class TC_DefinitionsObserver < SUMT::TestCase
     @defs.purge_unused
 
     # remove definition parameter, as it may be indeterminate
-    assert_obs_event  :onComponentRemoved, @defs, 24
+    assert_obs_event  :onComponentRemoved, 24, @defs, nil
     assert_obs_events
   end
 end

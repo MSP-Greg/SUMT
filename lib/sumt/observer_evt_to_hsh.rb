@@ -27,9 +27,9 @@ module ObserverEvtToHsh
     if meth =~ /\Aon[A-Z_]/
       self.class.send(:define_method, meth) { |*args|
         # MSP-Greg Add debug switch and branch for method definition
-        # puts "#{meth}  #{args.last}  #{args.last.is_a?(Sketchup::Entity) ? args.last.entityID : ''}"
-        cntr = OBS_CB.key?(meth) ? OBS_CB[meth][-1] + 1 : 1
-        OBS_CB[meth] = (args << cntr)
+        # puts "\nmeth #{meth}  args.last #{args.last.typename}  #{args.last.is_a?(Sketchup::Entity) ? args.last.entityID : ''}"
+        cntr = OBS_CB.key?(meth) ? OBS_CB[meth][0] + 1 : 1
+        OBS_CB[meth] = [cntr, args].flatten
       }
       true
     else

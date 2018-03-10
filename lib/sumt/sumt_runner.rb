@@ -57,7 +57,7 @@ module SUMT
   attr_reader :repeats   ; @repeats     = 1
 
   # Rerun file to use for test selection & order
-  # @return [String,nil]  
+  # @return [String,nil]
   attr_reader :rr_file   ;  @rr_file    = nil
 
   # passed along to MT
@@ -69,15 +69,15 @@ module SUMT
   attr_reader :show_skip ; @show_skip   = nil
 
   # Temp directory, resets `Sketchup.temp_dir`
-  # @return [String,nil]  
+  # @return [String,nil]
   attr_reader :temp_dir  ; @temp_dir    = nil
 
   # Base folder for test files
-  # @return [String,nil]  
-  attr_reader :test_dir  ; @test_dir    = nil 
-  
+  # @return [String,nil]
+  attr_reader :test_dir  ; @test_dir    = nil
+
   # @!endgroup
-  
+
   #}
 
   # Misc data used in reports
@@ -85,11 +85,11 @@ module SUMT
   attr_reader :rpt_data  ; @rpt_data   = nil
 
   # Rerun test data from `rr_file`
-  # @return [String,nil]  
+  # @return [String,nil]
   attr_reader :rr_data   ; @rr_data    = nil
-  
+
   # Current run, see repeats.
-  # @return [Integer]  
+  # @return [Integer]
   attr_reader :run_cntr  ; @run_cntr   = 0
 
   # Array of all test file paths, relative to {.test_dir}
@@ -107,13 +107,6 @@ module SUMT
     ary_remove = []
     ary_tests  = []
     return unless set_opts(opts)
-    
-    # first things first...
-    if @temp_dir && Dir.exist?(@temp_dir)
-      ENV['TMP']    = @temp_dir
-      ENV['TEMP']   = @temp_dir
-      ENV['TMPDIR'] = @temp_dir
-    end
 
     load_deps unless @loaded
 
@@ -159,6 +152,7 @@ module SUMT
     puts str
 
     run_mt
+
 
   end
 
@@ -209,7 +203,7 @@ module SUMT
     opts_ary << "--exclude" << @exclude   if (@exclude.is_a?(String) || @exclude.is_a?(Regexp))
     opts_ary
   end
-  
+
   # Set variable based in calling parameters
   # @param [Symbol] s short calling option symbol
   # @param [Symbol] l long calling option symbol
@@ -228,7 +222,7 @@ module SUMT
     t[:timestamp]  = tn.strftime('%F_%H-%M-%S')
     t[:log_base]   = "SUMT_#{t[:timestamp]}_su#{SU_VERS_INT}"
   end
-  
+
   # Loads dependencies
   def load_deps
     require 'stringio'
@@ -250,7 +244,7 @@ module SUMT
     @loaded = true
   end
 
-  # Loads log & udp reporter files 
+  # Loads log & udp reporter files
   def load_reporters
     if @gen_logs
       require_relative 'file_reporter'
@@ -294,7 +288,7 @@ module SUMT
         if r.respond_to? :fn
           fn = r.fn
           # puts "Suite #{fn}"
-          if fn.start_with?('TC_') || fn =~ /\/TC_/ 
+          if fn.start_with?('TC_') || fn =~ /\/TC_/
             ary_remove << r.to_s.to_sym if Object.const_defined?(r.name)
             true
           else
@@ -307,7 +301,7 @@ module SUMT
     else
       str = ary_tests.join(', ')
       puts "\n Test Files: #{str}"
-#      @rpt_data[:test_files] = str 
+#      @rpt_data[:test_files] = str
       Minitest::Runnable.runnables.select! { |r|
         if r.respond_to?(:fn)
           if ary_tests.include?(r.fn)
@@ -330,7 +324,7 @@ module SUMT
     Dir.chdir(@test_dir) { |d|
       stderr = $stderr
       $stderr = StringIO.new
-      
+
       if @load_all or ary_tests.empty?
         files = Dir.glob "**/TC_*.rb"
       else
@@ -350,14 +344,28 @@ module SUMT
 
   # After prep is finished, run tests
   def run_mt
+    # first things first...
     verbose = $VERBOSE
     $VERBOSE = nil
     o_stdout = $stdout
     o_stderr = $stderr
     $stdout = SUMT::SUMT_CONSOLE
 
+    if @temp_dir && Dir.exist?(@temp_dir)
+      env = {}
+      env['TMP']    = ENV['TMP']
+      env['TEMP']   = ENV['TEMP']
+      env['TMPDIR'] = ENV['TMPDIR']
+
+      ENV['TMP']    = @temp_dir
+      ENV['TEMP']   = @temp_dir
+      ENV['TMPDIR'] = @temp_dir
+    else
+      env = nil
+    end
+
     opts = mt_opts
-    
+
     1.upto(@repeats) { |r|
       set_rpt_data
       @run_cntr = r
@@ -371,12 +379,19 @@ module SUMT
     model.respond_to?(:close) and model.close(true)
     Sketchup.file_new
 
-    $VERBOSE =  verbose
+  ensure
+    $VERBOSE = verbose
     srand if @seed
     $stdout = o_stdout
     $stderr = o_stderr
+
+    if env
+      ENV['TMP']    = env['TMP']
+      ENV['TEMP']   = env['TEMP']
+      ENV['TMPDIR'] = env['TMPDIR']
+    end
   end
-  
+
   # Deletes temp files when using repeats
   def remove_temp_files
     files = Dir.glob "#{Sketchup.temp_dir}/SUMT/**/*.*"

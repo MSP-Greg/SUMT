@@ -6,7 +6,7 @@ SUMT is a system for using Minitest (MT) from the SketchUp Ruby console.  All op
 
 ## Why
 
-I've worked with Minitest based test systems in both Ruby and several gems.  Most gems use the Rake::TestTask for running tests.  SUMT is a combination of the two, and has quite a few options.  Testup-2 is a very nice framework (thanks @thomThom), but I wanted something that was quicker to run, in addition to a few more options.
+I've worked with Minitest based test systems in both Ruby and several gems.  Most gems use the Rake::TestTask for running tests.  SUMT is a combination of the two, and has quite a few options.  Testup-2 is a very nice framework (thanks @thomthom), but I wanted something that was quicker to run, in addition to a few more options.
 
 ## Installation
 
@@ -117,7 +117,7 @@ All options are keywords, many have two means of calling them, a short name and 
 
 ### ToDo
 
-1. Misc changes to reports.
+1. Misc changes and cleanup/refactor for reports.
 
 2. Write more Observer tests.
 
