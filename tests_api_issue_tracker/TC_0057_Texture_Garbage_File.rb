@@ -3,6 +3,9 @@
 ————————————————————————————————————————————————————————————————————————————————
 SUMT.run d:'tests_api_issue_tracker', f:%w[TC_0057_Texture_Garbage_File.rb]
 
+https://github.com/SketchUp/api-issue-tracker/issues/57
+reported by @prachtan
+
 Copyright 2018 MSP-Greg
 License: The MIT License (MIT)
 ————————————————————————————————————————————————————————————————————————————————
