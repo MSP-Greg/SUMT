@@ -5,19 +5,34 @@
 # License: The MIT License (MIT)
 #———————————————————————————————————————————————————————————————————————————————
 
-require 'socket'
+module SUMT
 
-# Run with stand-alone ruby, starts a UDP socket to receive data from SUMT.
-#
-module UDPReceiver
+module ObserverEvtToQueue
 
-  def self.run
-    skt = UDPSocket.new
-    skt.bind '127.0.0.1', 50_000
-    loop do
-      str = skt.recvfrom(2048)[0]
-      $stdout.write str
+  OBS_QUEUE = SUMT::Assertions::OBS_QUEUE
+
+  def initialize(*arg)
+    super
+    events_clear!
+  end
+
+  # Clears events hash
+  def events_clear!
+    OBS_QUEUE.clear
+  end
+
+  # Defines methods for observers as they're called
+  def respond_to?(meth, include_private = false)
+    return true if super
+    if meth =~ /\Aon[A-Z_]/
+      self.class.send(:define_method, meth) { |*args|
+        OBS_QUEUE << [self.class.name[/[^:]+\Z/], meth, *args]
+      }
+      true
+    else
+      false
     end
   end
-end
-UDPReceiver.run
+
+end # module ObserverEvtToQueue
+end # module

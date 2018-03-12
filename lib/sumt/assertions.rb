@@ -9,7 +9,8 @@ module SUMT
 
 module Assertions
 
-  OBS_CB = Hash.new
+  OBS_CB    = Hash.new
+  OBS_QUEUE = []
 
   # Checks for how many different event callers (methods) were called,
   # {assert_obs_event} is used to check how many times a particular method was

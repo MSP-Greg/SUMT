@@ -235,6 +235,7 @@ module SUMT
     require_relative 'minitest_test_runnable_prepend.rb'
     require_relative 'menu_guard.rb'
     require_relative 'observer_evt_to_hsh.rb'
+    require_relative 'observer_evt_to_queue.rb'
     require_relative 'system_files.rb'
     require_relative 'app_files.rb'
     require_relative 'file_reporter.rb'
