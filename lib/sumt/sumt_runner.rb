@@ -247,19 +247,21 @@ module SUMT
 
   # Loads log & udp reporter files
   def load_reporters
+    mt_exts = Minitest.extensions
+
     if @gen_logs
       require_relative 'file_reporter'
-      Minitest.extensions << 'file' unless Minitest.extensions.include? 'file'
+      mt_exts << 'file' unless mt_exts.include? 'file'
     elsif @gen_logs == false
-      Minitest.extensions.delete 'file'
+      mt_exts.delete 'file'
     end
 
     if @gen_udp
       require 'socket'
       require_relative 'udp_reporter'
-      Minitest.extensions << 'udp' unless Minitest.extensions.include? 'udp'
+      mt_exts << 'udp' unless mt_exts.include? 'udp'
     elsif @gen_udp == false
-      Minitest.extensions.delete 'udp'
+      mt_exts.delete 'udp'
     end
   end
 
