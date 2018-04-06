@@ -28,7 +28,8 @@ class UDPReporter < MiniTest::StatisticsReporter
   def start
     super
     @@io = io
-    str = "Run seed: #{options[:seed]}"
+    str = "\n\n#{'—' * 85}\nTest Dir: #{SUMT.test_dir}\n" \
+          "Run seed: #{options[:seed]}"
     if SUMT.repeats != 1
       io.write "%-69s  Running: %2d/%d\n\n" % [str, SUMT.run_cntr, SUMT.repeats]
     else
@@ -48,7 +49,7 @@ class UDPReporter < MiniTest::StatisticsReporter
   def report
     super
     io.sync = self.old_sync
-    io.puts [statistics, summary, '—' * 85, '']
+    io.puts [aggregated_results, statistics, summary, '—' * 85, '']
   ensure
     io.flush
     io.close
@@ -62,11 +63,13 @@ class UDPReporter < MiniTest::StatisticsReporter
 
   def aggregated_results
     filtered_results = results.dup
-    filtered_results.reject!(&:skipped?) unless options[:verbose] || SUMT.show_skips
+    filtered_results.reject!(&:skipped?) unless options[:verbose] || SUMT.show_skip
 
-    filtered_results.each_with_index.map { |result, i|
+    s = filtered_results.each_with_index.map { |result, i|
       "\n%3d) %s" % [i+1, result]
-    }.join("\n") + "\n"
+    }.join("\n")
+    re_test_dir = Regexp.new Regexp.escape(SUMT.test_dir + '/')
+    s.gsub(re_test_dir, '')
   end
 
   def summary
@@ -79,6 +82,8 @@ end # module SUMT
 
 module Minitest
   def self.plugin_udp_init(options)
+#    self.reporter.reporters.reject! { |r| r.instance_of? ProgressReporter }
+#    self.reporter.reporters.reject! { |r| r.instance_of? SummaryReporter }
     self.reporter << ::SUMT::UDPReporter.new(options)
   end
 end
