@@ -39,47 +39,69 @@ end
 end # module SUMT
 
 module Minitest
-class Test
+  class Test
 
-  # @!macro [new] fn
-  #   @!attribute [r] fn
-  #   File path of class or instance, relative to {SUMT.test_dir}.
-  #   @param [string, nil] f filename of class. See MinitestRunnerPrepend.inherited.
-  #   @return [string]
+    # @!macro [new] fn
+    #   @!attribute [r] fn
+    #   File path of class or instance, relative to {SUMT.test_dir}.
+    #   @param [string, nil] f filename of class. See MinitestRunnerPrepend.inherited.
+    #   @return [string]
 
-  class << self
-    prepend SUMT::MinitestTestPrepend
+    class << self
+      prepend SUMT::MinitestTestPrepend
 
-    @fn = nil
+      # @!macro fn
+      def fn(f = nil)
+        return @fn if instance_variable_defined?(:@fn) && @fn
+        t1 = Regexp.new Regexp.escape(SUMT.test_dir + '/')
+        @fn ||= if f && File.exist?(f)
+          f.sub(t1, '')
+        elsif !(t = self.instance_methods false).empty?
+          self.instance_method(t[0].to_sym).source_location[0].sub(t1, '')
+        elsif !(t = self.singleton_methods false).empty?
+          self.singleton_method(t[0].to_sym).source_location[0].sub(t1, '')
+        else
+          nil
+        end
+      end
 
-    # @!macro fn
-    def fn(f = nil)
-      return @fn if @fn
-      t1 = Regexp.new Regexp.escape(SUMT.test_dir + '/')
-      if f && File.exist?(f)
-        @fn = f.sub(t1, '')
-      elsif !(t = self.instance_methods false).empty?
-        @fn ||= self.instance_method(t[0].to_sym).source_location[0].sub(t1, '')
-      elsif !(t = self.singleton_methods false).empty?
-        @fn ||= self.singleton_method(t[0].to_sym).source_location[0].sub(t1, '')
-      else
-        nil
+      # Clears `@r_meths`, which is used to hold {runnable_methods}.
+      def meths_clear
+        @r_meths = nil
       end
     end
 
-    # Clears `@r_meths`, which is used to hold {runnable_methods}.
-    def meths_clear
-      @r_meths = nil
+
+
+=begin
+      # @!macro fn
+      def fn(f = nil)
+        return @fn if @fn
+        t1 = Regexp.new Regexp.escape(SUMT.test_dir + '/')
+        if f && File.exist?(f)
+          @fn = f.sub(t1, '')
+        elsif !(t = self.instance_methods false).empty?
+          @fn ||= self.instance_method(t[0].to_sym).source_location[0].sub(t1, '')
+        elsif !(t = self.singleton_methods false).empty?
+          @fn ||= self.singleton_method(t[0].to_sym).source_location[0].sub(t1, '')
+        else
+          nil
+        end
+      end
+
+      # Clears `@r_meths`, which is used to hold {runnable_methods}.
+      def meths_clear
+        @r_meths = nil
+      end
     end
+=end
+    # @!macro fn
+    def fn ; self.class.fn ; end
+
+  end # Test
+
+  class Runnable
+    class << self ; prepend SUMT::MinitestRunnablePrepend ; end
   end
-
-  # @!macro fn
-  def fn ; self.class.fn ; end
-
-end # Test
-
-class Runnable
-  class << self ; prepend SUMT::MinitestRunnablePrepend ; end
-end
 
 end # Minitest

@@ -22,59 +22,59 @@ module SUMT
 
   # Exclude search string passed to Minitest
   # @return [String,nil]
-  attr_reader :exclude    ; @exclude    = nil
+  attr_reader :exclude
 
   # Array used for `Dir.glob`, from `f:` or `file_query` parameter
   # @return [Array<String>,nil]
-  attr_reader :file_query ; @file_query = nil
+  attr_reader :file_query
 
   # Output to Visual Studio debugger - future!
   # @return [Boolean,nil]
-  attr_reader :gen_debug  ; @gen_debug  = nil
+  attr_reader :gen_debug
 
   # Generate log files to log_dir
   # @return [Boolean,nil]
-  attr_reader :gen_logs   ; @gen_logs   = nil
+  attr_reader :gen_logs
 
   # Generate rerun info (test selection & order) to yaml file for reuse.
   # @return [Boolean,nil]
-  attr_reader :gen_rerun  ; @gen_rerun  = nil
+  attr_reader :gen_rerun
 
   # Output UDPSocket data for debugging.
   # @return [Boolean,nil]
-  attr_reader :gen_udp    ; @gen_udp    = nil
+  attr_reader :gen_udp
 
   # Base directory for run & log files
   # @return [String,nil]
-  attr_reader :log_dir   ;  @log_dir    = nil
+  attr_reader :log_dir
 
   # Name search string passed to Minitest
   # @return [String,nil]
-  attr_reader :name      ; @name        = nil
+  attr_reader :name
 
   # Number of test repeats /runs, defaults to 1
   # @return [Integer,nil]
-  attr_reader :repeats   ; @repeats     = 1
+  attr_reader :repeats
 
   # Rerun file to use for test selection & order
   # @return [String,nil]
-  attr_reader :rr_file   ;  @rr_file    = nil
+  attr_reader :rr_file
 
   # passed along to MT
   # @return [Integer,nil]
-  attr_reader :seed      ; @seed        = nil
+  attr_reader :seed
 
   # Show skip detail in log summary (without verbose:)
   # @return [Boolean,nil]
-  attr_reader :show_skip ; @show_skip   = nil
+  attr_reader :show_skip
 
   # Temp directory, resets `Sketchup.temp_dir`
   # @return [String,nil]
-  attr_reader :temp_dir  ; @temp_dir    = nil
+  attr_reader :temp_dir
 
   # Base folder for test files
   # @return [String,nil]
-  attr_reader :test_dir  ; @test_dir    = nil
+  attr_reader :test_dir
 
   # @!endgroup
 
@@ -82,30 +82,27 @@ module SUMT
 
   # Misc data used in reports
   # @return [String,nil]
-  attr_reader :rpt_data  ; @rpt_data   = nil
+  attr_reader :rpt_data
 
   # Rerun test data from `rr_file`
   # @return [String,nil]
-  attr_reader :rr_data   ; @rr_data    = nil
+  attr_reader :rr_data
 
   # Current run, see repeats.
   # @return [Integer]
-  attr_reader :run_cntr  ; @run_cntr   = 0
+  attr_reader :run_cntr
 
   # Array of all test file paths, relative to {.test_dir}
   # @return [Array<String>,nil]
-  attr_reader :test_files; @test_files = nil
-
-
-  @loaded     = nil        # true if SUMT requires are loaded
-  @load_all   = nil        # loads all tests
-  @rpt_data   = {}         # Data shared with reports
+  attr_reader :test_files
 
   # Main method that loads all parameters, sets test environment, runs tests
   def runner(opts)
-    @not_rr = true
+    init_variables unless instance_variable_defined?(:@exclude)
+
     ary_remove = []
     ary_tests  = []
+
     return unless set_opts(opts)
 
     load_deps unless @loaded
@@ -132,15 +129,17 @@ module SUMT
     if @not_rr && @file_query && !@file_query.empty?
       # add /**/TC_*.rb to any elements that don't end with .rb, which should refer
       # to directories
-      glob = @file_query.map { |g| g.end_with?('.rb') ? "**/#{g}" : "#{g}/**/TC_*.rb" }
-      # puts "glob #{glob}"
+      glob = @file_query.map { |g| g.end_with?('.rb') ? "**/test_#{g}" : "#{g}/**/test_*.rb" }
 
       Dir.chdir(@test_dir) { |d| ary_tests = Dir.glob glob }
       if ary_tests.empty?
         UI.messagebox "No matching files in\n\n#{@file_query}"
         return
       end
+    else
+      Dir.chdir(@test_dir) { |d| ary_tests = Dir.glob '**/test_*.rb' }
     end
+    Dir.chdir(@test_dir) { |d| ary_tests = Dir.glob '**/test_*.rb' }
 
     load_tests ary_tests, ary_remove
     load_reporters
@@ -152,11 +151,37 @@ module SUMT
     puts str
 
     run_mt
-
-
   end
 
   private
+
+  def init_variables
+    @exclude    = nil
+    @file_query = nil
+    @gen_debug  = nil
+    @gen_logs   = nil
+    @gen_rerun  = nil
+    @gen_udp    = nil
+    @log_dir    = nil
+    @name       = nil
+    @repeats    = 1
+    @rr_file    = nil
+    @seed       = nil
+    @show_skip  = nil
+    @temp_dir   = nil
+    @test_dir   = nil
+    @rpt_data   = nil
+    @rr_data    = nil
+    @run_cntr   = 0
+    @test_files = nil
+    @verbose    = nil
+
+    @loaded     = nil        # true if SUMT requires are loaded
+    @load_all   = nil        # loads all tests
+    @rpt_data   = {}         # Data shared with reports
+
+    @not_rr     = true
+  end
 
   # Loads parameters used in {.run} call
   def set_opts(opts)
@@ -277,7 +302,6 @@ module SUMT
     rr_hdr = @rr_data.shift[1]
     @test_dir   = rr_hdr[:test_dir]
     @test_files = rr_hdr[:test_files]
-    ary_tests   = rr_hdr[:test_files]
     @not_rr = false
   end
 
@@ -286,12 +310,12 @@ module SUMT
     if ary_tests.empty?
       puts "\n Test Files: ALL"
       @rpt_data[:test_files] = 'All'
-      ary = []
       Minitest::Runnable.runnables.select! { |r|
         if r.respond_to? :fn
           fn = r.fn
           # puts "Suite #{fn}"
-          if fn.start_with?('TC_') || fn =~ /\/TC_/
+          #if fn.start_with?('TC_') || fn =~ /\/TC_/
+          if fn.start_with?('test_') || fn =~ /\/test_/
             ary_remove << r.to_s.to_sym if Object.const_defined?(r.name)
             true
           else
@@ -303,12 +327,19 @@ module SUMT
       }
     else
       str = ary_tests.join(', ')
-      puts "\n Test Files: #{str}"
-#      @rpt_data[:test_files] = str
+      puts "\n Test Files: #{str}", ""
       Minitest::Runnable.runnables.select! { |r|
         if r.respond_to?(:fn)
-          if ary_tests.include?(r.fn)
-            ary_remove << r.to_s.to_sym if Object.const_defined?(r.name)
+          if ary_tests.include? r.fn
+            parent_obj = Object
+            if r.to_s.include? '::'
+              r_ary = r.to_s.split '::'
+              const = r_ary.pop.to_sym
+              r_ary.each { |obj| parent_obj = parent_obj.const_get(obj.to_sym) }
+            else
+              const = r.name.to_sym
+            end
+            ary_remove << [parent_obj, const] if parent_obj.const_defined?(const)
             true
           else
             false
@@ -318,7 +349,9 @@ module SUMT
         end
       }
     end
-    ary_remove.each { |t| Object.send(:remove_const, t) }
+    ary_remove.each do |parent_obj, const|
+      parent_obj.send :remove_const, const
+    end
 
     # (re)load files
     Minitest::Runnable.runnables.clear
@@ -329,13 +362,12 @@ module SUMT
       $stderr = StringIO.new
 
       if @load_all or ary_tests.empty?
-        files = Dir.glob "**/TC_*.rb"
+        files = Dir.glob "**/test_*.rb"
       else
         files = ary_tests
       end
 
       $LOAD_PATH.unshift @test_dir
-      File.exist?('helper.rb') and load('helper.rb')
       files.each { |fn| load "./#{fn}" }
       $LOAD_PATH.shift
 

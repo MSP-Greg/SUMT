@@ -67,7 +67,7 @@ class FileReporter < MiniTest::StatisticsReporter
             "   Minitest: #{Minitest::VERSION}\n\n"   \
             "   Platform: #{Sketchup.platform}\n"     \
             "     Locale: #{Sketchup.get_locale}\n\n" \
-            "    Running:#{str}\n"
+            "    Running:#{str}\n" \
             "Run options: #{opts_str}\n\n"
 
     self.sync = io.respond_to? :"sync=" # stupid emacs

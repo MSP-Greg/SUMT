@@ -82,7 +82,6 @@ class TestCase < Minitest::Test
 
     # @!macro start_with_empty_model
     def start_with_empty_model(clr_schemas: true)
-      abort   = true
       ents    = false
       defs    = false
       lyrs    = false
@@ -219,11 +218,6 @@ class TestCase < Minitest::Test
 
   def restore_read_only_flag_for_test_models
     return false if Test.respond_to?(:suppress_warnings=)
-    source = caller_locations(1,1)[0].absolute_path
-    path = File.dirname(source)
-    basename = File.basename(source, ".*")
-    support_path = File.join(path, basename)
-    skp_model_filter = File.join(support_path, '*.skp')
     @read_only_files.each { |file|
       FileUtils.chmod("a-w", file)
     }
