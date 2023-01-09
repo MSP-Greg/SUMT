@@ -19,7 +19,7 @@ module SUMT
   PLUGIN_ID       = 'SUMT'.freeze
   PLUGIN_NAME     = 'SUMT'.freeze
   PLUGIN_VERSION  = '0.9.0'.freeze
-  PATH            = 'E:/GitHub/SUMT/lib'
+  PATH            = 'C:/Greg/GitHub/SUMT/lib'
 
   #——————————————————————————————————————————————————————————————————— Extension
   loader = File.join( PATH, 'sumt.rb' )
